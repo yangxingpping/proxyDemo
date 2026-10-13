@@ -168,7 +168,7 @@ int main(void)
 	proxy_test();
 	cpr_test();
 	asio_file_test();
-	asio_block_test();
+	//asio_block_test();
 	SPDLOG_INFO("hello,world");
 	return 0;
 }
