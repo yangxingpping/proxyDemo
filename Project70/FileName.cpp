@@ -2,7 +2,9 @@
 #include "spdlog/spdlog.h"
 
 #include <vector>
+#include <string>
 using std::vector;
+using std::string;
 
 class Dog
 {
@@ -10,6 +12,10 @@ public:
 	void Eat() const
 	{
 		SPDLOG_INFO("Dog is eating");
+	}
+	string Name() const
+	{
+		return "Dog";
 	}
 };
 
@@ -20,15 +26,20 @@ public:
 	{
 		SPDLOG_INFO("Cat is eating");
 	}
+	string Name() const
+	{
+		return "Cat";
+	}
 };
 
-PRO_DEF_MEM_DISPATCH(MemName, Eat);
+PRO_DEF_MEM_DISPATCH(MemEat, Eat);
+PRO_DEF_MEM_DISPATCH(MemName, Name);
 
 class AnimalProxy : public pro::facade_builder
-	::add_convention<MemName, void() const>
+	::add_convention<MemEat, void() const>
+	::add_convention<MemName, string() const>
 	::build
 {
-
 };
 
 int main(void)
@@ -39,6 +50,7 @@ int main(void)
 	for (auto& animal : animals)
 	{
 		animal->Eat();
+		SPDLOG_INFO("Animal name: {}", animal->Name());
 	}
 	SPDLOG_INFO("hello,world");
 	return 0;
