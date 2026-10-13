@@ -2,6 +2,8 @@
 #include <spdlog/spdlog.h>
 #include <cpr/cpr.h>
 
+#include "asio/asio.hpp"
+
 #include <vector>
 #include <string>
 using std::vector;
