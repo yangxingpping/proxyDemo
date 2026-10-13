@@ -1,0 +1,8 @@
+/x64/
+/.vs/
+/Project70/x64/Debug/
+/Project70/x64/Release/
+/Project70/Project70/x64/Debug/
+/Project70/Project70/x64/Release/
+*.user
+*.filters
