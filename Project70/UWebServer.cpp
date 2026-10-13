@@ -5,6 +5,7 @@
 #include <asio/executor_work_guard.hpp>
 #include <asio/io_context.hpp>
 #include <asio/ip/tcp.hpp>
+#include <asio/read.hpp>
 #include <asio/signal_set.hpp>
 #include <asio/write.hpp>
 
@@ -35,45 +36,52 @@ namespace
 	}
 }
 
-static asio::io_context* _io{ nullptr };
-
 asio::awaitable<std::vector<char>> async_read_file(const std::string& filepath) {
 	std::vector<char> content;
 	try {
-		asio::stream_file file(*_io, filepath, asio::stream_file::read_only);
-		//file.seek(0, SEEK_END);
-		auto size = file.size();
-		//file.seek(0, SEEK_SET);
-		content.resize(static_cast<size_t>(size));
-		co_await file.async_read_some(asio::buffer(content), asio::use_awaitable);
-		//co_await asio::async_read(file, asio::buffer(content), asio::use_awaitable);
+		auto ex = co_await this_coro::executor;
+		asio::stream_file file(ex, filepath, asio::stream_file::read_only);
+		content.resize(static_cast<size_t>(file.size()));
+		co_await asio::async_read(file, asio::buffer(content), asio::use_awaitable);
 	}
 	catch (const std::exception&) {
-		
+
 	}
 	co_return content;
 }
 
 bool UWebServer::start()
 {
-
-	bool ret{ true };
-	_io = &file_io();
-    _app.get("/*", [](auto* res, auto* req) {
+	uWS::Loop* loop = uWS::Loop::get();
+    _app.get("/*", [loop](auto* res, auto* req) {
         std::string path = "public" + std::string(req->getUrl());
         asio::co_spawn(
-			*_io,
+			file_io(),
 			async_read_file(path),
-            [res](std::exception_ptr eptr, std::vector<char> content) {
-                if (eptr) {
-                    res->writeStatus("500 Internal Server Error")->end("Read error");
-                }
-                else {
-                    res->writeHeader("Content-Type", "text/html; charset=utf-8")
-                        ->end({ content.data(), content.size() });
-                }
+			// Runs on the asio thread; defer bounces back to the uWS loop
+			// thread, which is the only thread allowed to touch res.
+            [loop, res](std::exception_ptr eptr, std::vector<char> content) {
+				loop->defer([res, eptr, content = std::move(content)]() mutable {
+	                if (eptr) {
+	                    res->writeStatus("500 Internal Server Error")->end("Read error");
+	                }
+	                else {
+	                    res->writeHeader("Content-Type", "text/html; charset=utf-8")
+	                        ->end({ content.data(), content.size() });
+	                }
+				});
             }
         );
         });
-	return ret;
+	_app.listen(9001, [](auto* listenSocket) {
+
+		if (listenSocket) {
+			std::cout << "Listening on port " << 9001 << std::endl;
+		}
+		else {
+			std::cout << "Failed to load certs or to bind to port" << std::endl;
+		}
+
+		}).run();
+	return true;
 }

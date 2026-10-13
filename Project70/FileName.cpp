@@ -4,6 +4,7 @@
 
 #include "asio.hpp"
 #include "ZWebServer.h"
+#include "UWebServer.h"
 
 #include <vector>
 #include <string>
@@ -163,12 +164,19 @@ void asio_block_test()
 	server.start();
 }
 
+void uweb_test()
+{
+	UWebServer server;
+	server.start();
+}
+
 int main(void)
 {
 	proxy_test();
 	cpr_test();
-	asio_file_test();
+	//asio_file_test();
 	//asio_block_test();
+	uweb_test();
 	SPDLOG_INFO("hello,world");
 	return 0;
 }
