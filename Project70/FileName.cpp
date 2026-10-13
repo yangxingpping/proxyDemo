@@ -15,8 +15,14 @@ public:
 	}
 	string Name() const
 	{
-		return "Dog";
+		return _name;
 	}
+	void setName(string newName)
+	{
+		_name = newName;
+	}
+private:
+	string _name{ "Dog" };
 };
 
 class Cat
@@ -28,16 +34,24 @@ public:
 	}
 	string Name() const
 	{
-		return "Cat";
+		return _name;
 	}
+	void setName(string newName)
+	{
+		_name = newName;
+	}
+private:
+	string _name{ "Cat" };
 };
 
 PRO_DEF_MEM_DISPATCH(MemEat, Eat);
 PRO_DEF_MEM_DISPATCH(MemName, Name);
+PRO_DEF_MEM_DISPATCH(MemSetName, setName);
 
 class AnimalProxy : public pro::facade_builder
 	::add_convention<MemEat, void() const>
 	::add_convention<MemName, string() const>
+	::add_convention<MemSetName, void(string) >
 	::build
 {
 };
@@ -51,6 +65,8 @@ int main(void)
 	{
 		animal->Eat();
 		SPDLOG_INFO("Animal name: {}", animal->Name());
+		animal->setName(string("newName"));
+		SPDLOG_INFO("Animal New name: {}", animal->Name());
 	}
 	SPDLOG_INFO("hello,world");
 	return 0;
