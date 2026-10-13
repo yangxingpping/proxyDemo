@@ -10,7 +10,8 @@
 #include <asio/write.hpp>
 
 #include <thread>
-
+#include <string>
+using std::string;
 
 using asio::ip::tcp;
 using asio::awaitable;
@@ -55,23 +56,25 @@ bool UWebServer::start()
 	uWS::Loop* loop = uWS::Loop::get();
     _app.get("/*", [loop](auto* res, auto* req) {
         std::string path = "public" + std::string(req->getUrl());
-        asio::co_spawn(
-			file_io(),
-			async_read_file(path),
-			// Runs on the asio thread; defer bounces back to the uWS loop
-			// thread, which is the only thread allowed to touch res.
-            [loop, res](std::exception_ptr eptr, std::vector<char> content) {
-				loop->defer([res, eptr, content = std::move(content)]() mutable {
-	                if (eptr) {
-	                    res->writeStatus("500 Internal Server Error")->end("Read error");
-	                }
-	                else {
-	                    res->writeHeader("Content-Type", "text/html; charset=utf-8")
-	                        ->end({ content.data(), content.size() });
-	                }
-				});
-            }
-        );
+		string str{ "hello,world" };
+		res->end(str.data(), str.length());
+		//     asio::co_spawn(
+			//file_io(),
+			//async_read_file(path),
+			//// Runs on the asio thread; defer bounces back to the uWS loop
+			//// thread, which is the only thread allowed to touch res.
+   //         [loop, res](std::exception_ptr eptr, std::vector<char> content) {
+			//	loop->defer([res, eptr, content = std::move(content)]() mutable {
+	  //              if (eptr) {
+	  //                  res->writeStatus("500 Internal Server Error")->end("Read error");
+	  //              }
+	  //              else {
+	  //                  res->writeHeader("Content-Type", "text/html; charset=utf-8")
+	  //                      ->end({ content.data(), content.size() });
+	  //              }
+			//	});
+   //         }
+   //     );
         });
 	_app.listen(9001, [](auto* listenSocket) {
 
