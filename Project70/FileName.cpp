@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 using std::vector;
 using std::string;
 
@@ -133,6 +134,23 @@ void asio_file_test()
 		asio::uint64_t s1 = file1.size();
 		(void)s1;
 		asio::uint64_t s2 = file1.size(ec);
+		vector<char> b;
+		b.resize(s1+1);
+		b[s1] = '\0';
+		file1.async_read_some(buffer(b),
+			[&b](const asio::error_code& ec, std::size_t bytes_transferred) {
+				if (!ec) {
+					std::cout << "Read " << bytes_transferred << " bytes\n";
+					// 处理 buffer->data() 中的前 bytes_transferred 个字节
+				}
+				else if (ec == asio::error::eof) {
+					std::cout << "End of file\n";
+				}
+				else {
+					std::cerr << "Error: " << ec.message() << "\n";
+				}
+			});
+		ioc.run();
 		(void)s2;
 		//file1.sync_all();
 		//file1.sync_all(ec);
@@ -174,9 +192,9 @@ int main(void)
 {
 	proxy_test();
 	cpr_test();
-	//asio_file_test();
+	asio_file_test();
 	//asio_block_test();
-	uweb_test();
+	//uweb_test();
 	SPDLOG_INFO("hello,world");
 	return 0;
 }
