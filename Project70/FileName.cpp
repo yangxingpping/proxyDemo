@@ -2,7 +2,8 @@
 #include <spdlog/spdlog.h>
 #include <cpr/cpr.h>
 
-#include "asio/asio.hpp"
+#include "asio.hpp"
+#include "ZWebServer.h"
 
 #include <vector>
 #include <string>
@@ -156,11 +157,18 @@ void asio_file_test()
 	}
 }
 
+void asio_block_test()
+{
+	ZWebServer server;
+	server.start();
+}
+
 int main(void)
 {
 	proxy_test();
 	cpr_test();
 	asio_file_test();
+	asio_block_test();
 	SPDLOG_INFO("hello,world");
 	return 0;
 }
